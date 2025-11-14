@@ -1,0 +1,90 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+db.sqlite3-journal
+/staticfiles/
+/static_root/
+
+# Media Files (Captured Images) - DON'T commit user uploads
+media/captures/
+media/live_monitoring/
+media/*.jpg
+media/*.jpeg
+media/*.png
+
+# Environment Variables
+.env
+.env.local
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+*.bak
+
+# Migrations (optional - uncomment if you don't want to track)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Unit test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Secrets
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Arduino IDE compiled files (ESP32)
+*.hex
+*.eep
+*.elf
+*.bin
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
+# ML Models (YOLO weights - too large for git)
+*.pt
+*.pth
+*.weights
+*.onnx
+
+# Project-specific
+LIVE_MONITORING.md  # Optional: remove this line if you want to commit it
+FIX_INSTRUCTIONS.md  # Optional: remove this line if you want to commit it

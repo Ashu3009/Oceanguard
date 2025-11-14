@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>OceanGuard - Coast Guard Dashboard</title>
+    <title>OceanGuard - {{ page_title }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,6 +13,32 @@
             text-align: center;
             color: #00d4ff;
         }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .nav-tab {
+            padding: 12px 30px;
+            background: #16213e;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .nav-tab:hover {
+            background: #0f3460;
+            transform: translateY(-2px);
+        }
+        .nav-tab.active {
+            background: #00d4ff;
+            color: #1a1a2e;
+        }
+
         .stats {
             display: flex;
             justify-content: center;
@@ -45,6 +71,7 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            position: relative;
         }
         .card img {
             width: 100%;
@@ -112,6 +139,35 @@
         .btn-warning:hover {
             background: #c82333;
         }
+        .btn-delete {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #5a6268;
+        }
+        .delete-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .delete-icon:hover {
+            background: rgba(200, 35, 51, 1);
+            transform: scale(1.1);
+        }
         .no-data {
             text-align: center;
             padding: 50px;
@@ -122,7 +178,20 @@
 </head>
 <body>
     <h1>🌊 OceanGuard - Coast Guard Dashboard</h1>
-    
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+        <a href="/gallery/" class="nav-tab {% if current_page == 'all' %}active{% endif %}">
+            📷 All Captures
+        </a>
+        <a href="/approved/" class="nav-tab {% if current_page == 'approved' %}active{% endif %}">
+            ✅ Approved ({{ approved }})
+        </a>
+        <a href="/warnings/" class="nav-tab {% if current_page == 'warnings' %}active{% endif %}">
+            ⚠️ Warnings ({{ warnings }})
+        </a>
+    </div>
+
     <div class="stats">
         <div class="stat">
             <div class="stat-number">{{ total }}</div>
@@ -145,22 +214,27 @@
     {% if captures %}
     <div class="gallery">
         {% for capture in captures %}
-        <div class="card">
+        <div class="card" id="card-{{ capture.id }}">
+            <!-- Delete Button -->
+            <button class="delete-icon" data-id="{{ capture.id }}" title="Delete">
+                ✕
+            </button>
+
             <img src="{{ capture.image.url }}" alt="Capture {{ capture.id }}">
             <div class="card-body">
                 <div class="card-title">Capture #{{ capture.id }}</div>
                 <div class="card-time">{{ capture.captured_at }}</div>
-                
+
                 <span class="status-badge badge-{{ capture.status }}">
                     {{ capture.get_status_display }}
                 </span>
-                
+
                 {% if capture.status == 'pending' %}
                 <div class="buttons">
-                    <button class="btn btn-ok" data-id="{{ capture.id }}" data-status="approved" onclick="handleClick(this)">
+                    <button class="btn btn-ok" data-id="{{ capture.id }}" data-status="approved">
                         ✓ OK
                     </button>
-                    <button class="btn btn-warning" data-id="{{ capture.id }}" data-status="warning" onclick="handleClick(this)">
+                    <button class="btn btn-warning" data-id="{{ capture.id }}" data-status="warning">
                         ⚠ WARNING
                     </button>
                 </div>
@@ -171,14 +245,35 @@
     </div>
     {% else %}
     <div class="no-data">
-        📷 No captures yet. Waiting for ESP32-CAM...
+        📷 No captures in this category yet.
     </div>
     {% endif %}
 
     <script>
+        // Event listeners setup
+        document.addEventListener('DOMContentLoaded', function() {
+            // Delete button click handlers
+            document.querySelectorAll('.delete-icon').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    deleteCapture(id);
+                });
+            });
+
+            // OK/WARNING button click handlers
+            document.querySelectorAll('.btn-ok, .btn-warning').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const status = this.getAttribute('data-status');
+                    markStatus(id, status);
+                });
+            });
+        });
+
+        // Mark status function (OK/WARNING)
         function markStatus(id, status) {
             if (!confirm('Confirm ' + status.toUpperCase() + '?')) return;
-            
+
             fetch('/update-status/' + id + '/', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -192,6 +287,34 @@
                 if (data.success) {
                     alert('✅ Status updated!');
                     location.reload();
+                } else {
+                    alert('❌ Error: ' + data.error);
+                }
+            })
+            .catch(err => alert('❌ Network error'));
+        }
+
+        // Delete capture function
+        function deleteCapture(id) {
+            if (!confirm('⚠️ Are you sure you want to DELETE this capture? This cannot be undone!')) return;
+
+            fetch('/delete-capture/' + id + '/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove card with animation
+                    const card = document.getElementById('card-' + id);
+                    card.style.transition = 'all 0.3s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        card.remove();
+                        alert('🗑️ Capture deleted!');
+                        location.reload();
+                    }, 300);
                 } else {
                     alert('❌ Error: ' + data.error);
                 }
