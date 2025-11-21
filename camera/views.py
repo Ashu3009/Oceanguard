@@ -294,7 +294,7 @@ def upload_image(request):
         save_to_live_monitoring(img_data, filename)  # Save new image
 
         # ============================================
-        # STEP 1: RED COLOR DETECTION (Fast Filter)
+        # STEP 1: SUSPICIOUS COLOR DETECTION
         # ============================================
         color_detected = False
         detected_color = None
@@ -302,25 +302,25 @@ def upload_image(request):
 
         try:
             if settings.COLOR_DETECTION_ENABLED:
-                print("🎨 Step 1: Checking for RED color...")
+                print("🎨 Step 1: Checking for suspicious activity...")
                 color_detected, detected_color, color_percentage = detect_colored_boat(img_data)
 
                 if color_detected:
-                    print(f"✅ RED Color Found! ({color_percentage}% of image)")
+                    print(f"✅ Suspicious Color Found! ({color_percentage}% of image)")
                 else:
-                    print(f"❌ No RED color detected - Rejecting image")
+                    print(f"❌ No suspicious activity detected - Rejecting image")
             else:
                 print("⚠️ Color detection disabled in settings")
         except Exception as e:
             print(f"❌ Color Detection Error: {str(e)}")
 
         # ============================================
-        # DECISION LOGIC: RED Color Only (SIMPLE!)
+        # DECISION LOGIC: Suspicious Activity Detection
         # ============================================
 
-        # RED color detected → Save to database
+        # Suspicious color detected → Save to database
         if color_detected:
-            print(f"✅ RED COLOR DETECTED → Saving to database")
+            print(f"✅ SUSPICIOUS ACTIVITY DETECTED → Saving to database")
 
             # Save to database
             boat_capture = BoatCapture()
@@ -329,26 +329,26 @@ def upload_image(request):
             boat_capture.qr_data = None
             boat_capture.qr_valid = False
             boat_capture.status = 'pending'
-            boat_capture.notes = f"🔴 RED Object Detected ({color_percentage}% of image)"
+            boat_capture.notes = f"⚠️ Suspicious Boat Detected ({color_percentage}% color match)"
             boat_capture.save()
 
-            print(f"✅ Image Saved: {boat_capture.id} - RED Detected - Status: PENDING")
+            print(f"✅ Image Saved: {boat_capture.id} - Suspicious Boat Detected - Status: PENDING")
 
             return JsonResponse({
                 "status": "received",
                 "id": boat_capture.id,
                 "filename": filename,
-                "red_detected": True,
+                "suspicious_detected": True,
                 "color_percentage": color_percentage
             })
 
-        # No RED color → Reject
+        # No suspicious color → Reject
         else:
-            print("❌ No RED color detected → Image rejected")
+            print("❌ No suspicious activity detected → Image rejected")
             return JsonResponse({
                 "status": "rejected",
-                "reason": "no_red_color",
-                "message": "No RED color detected in image"
+                "reason": "no_suspicious_activity",
+                "message": "No suspicious activity detected"
             })
 
     return JsonResponse({"error": "POST only"})

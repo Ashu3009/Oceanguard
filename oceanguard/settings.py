@@ -113,16 +113,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 QR_SCAN_ENABLED = False  # DISABLED - Using ML + Color detection
 
 # ML Boat Detection Settings (DISABLED - Only color detection!)
-ML_BOAT_DETECTION_ENABLED = False  # DISABLED - Only using RED color detection
+ML_BOAT_DETECTION_ENABLED = False  # DISABLED - Only using color detection
 ML_CONFIDENCE_THRESHOLD = 0.25  # 25% confidence (lowered for better detection)
 # Classes to detect as "boats" (COCO dataset - only 'boat' exists in COCO)
 # Note: COCO doesn't have 'ship', 'sailboat', etc. - only generic 'boat' class
 BOAT_CLASSES = ['boat']  # Only 'boat' exists in COCO dataset
 
-# 🎨 Color Detection Settings (RED Boat Detection!)
-COLOR_DETECTION_ENABLED = True  # Color filter for RED boats
+# 🎨 Color Detection Settings (Suspicious Boat Detection!)
+COLOR_DETECTION_ENABLED = True  # Color filter for suspicious boats
 
-# HSV color ranges for RED boats
+# HSV color ranges for suspicious boats (RED color)
 # HSV format: (Hue, Saturation, Value) - each 0-255 in OpenCV
 COLOR_RANGES = {
     'RED': [
