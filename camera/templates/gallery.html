@@ -288,9 +288,9 @@
 <body>
     <div class="container">
         <header>
-            <h1>🌊 OceanGuard</h1>
+            <h1>OceanGuard</h1>
             <p class="subtitle">AI-Powered Maritime Surveillance System</p>
-            <span class="system-status">🟢 System Active</span>
+            <span class="system-status">● SYSTEM ACTIVE</span>
         </header>
 
         <div class="stats">
@@ -319,38 +319,38 @@
                 <img src="{{ capture.image.url }}" alt="Suspicious Boat" class="boat-image">
                 <div class="boat-info">
                     <div class="boat-header">
-                        <span class="boat-id">🚢 Detection #{{ capture.id }}</span>
+                        <span class="boat-id">Detection #{{ capture.id }}</span>
                         <span class="boat-status status-{{ capture.status }}">
-                            {% if capture.status == 'pending' %}⚠️ REVIEW{% endif %}
-                            {% if capture.status == 'approved' %}✅ CLEARED{% endif %}
-                            {% if capture.status == 'warning' %}🚨 ALERT{% endif %}
+                            {% if capture.status == 'pending' %}REVIEW{% endif %}
+                            {% if capture.status == 'approved' %}CLEARED{% endif %}
+                            {% if capture.status == 'warning' %}ALERT{% endif %}
                         </span>
                     </div>
                     <div class="boat-notes">
                         {{ capture.notes }}
                     </div>
                     <div class="boat-time">
-                        📅 {{ capture.captured_at|date:"d M Y, h:i A" }}
+                        {{ capture.captured_at|date:"d M Y, h:i A" }}
                     </div>
                     <div class="action-buttons">
                         <form method="POST" action="/update-status/{{ capture.id }}/" style="flex: 1; display: flex;">
                             {% csrf_token %}
                             <input type="hidden" name="status" value="approved">
                             <button type="submit" class="action-btn approve-btn" {% if capture.status == 'approved' %}disabled{% endif %}>
-                                ✓ Clear
+                                Clear
                             </button>
                         </form>
                         <form method="POST" action="/update-status/{{ capture.id }}/" style="flex: 1; display: flex;">
                             {% csrf_token %}
                             <input type="hidden" name="status" value="warning">
                             <button type="submit" class="action-btn warning-btn" {% if capture.status == 'warning' %}disabled{% endif %}>
-                                ⚠ Alert
+                                Alert
                             </button>
                         </form>
                         <form method="POST" action="/delete-capture/{{ capture.id }}/" onsubmit="return confirm('Delete this detection?')" style="flex: 1; display: flex;">
                             {% csrf_token %}
                             <button type="submit" class="action-btn delete-btn">
-                                🗑️ Delete
+                                Delete
                             </button>
                         </form>
                     </div>
@@ -360,12 +360,12 @@
         </div>
         {% else %}
         <div class="no-boats">
-            <h2>🔍 No Detections Yet</h2>
+            <h2>No Detections Yet</h2>
             <p>System is actively monitoring the maritime area. Suspicious activities will be displayed here.</p>
         </div>
         {% endif %}
 
-        <button class="refresh-btn" onclick="location.reload()">🔄 Refresh</button>
+        <button class="refresh-btn" onclick="location.reload()">Refresh</button>
     </div>
 </body>
 </html>

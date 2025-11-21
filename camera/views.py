@@ -329,10 +329,10 @@ def upload_image(request):
             boat_capture.qr_data = None
             boat_capture.qr_valid = False
             boat_capture.status = 'pending'
-            boat_capture.notes = f"⚠️ Suspicious Boat Detected ({color_percentage}% color match)"
+            boat_capture.notes = f"Unidentified vessel detected - Security review required (Confidence: {color_percentage}%)"
             boat_capture.save()
 
-            print(f"✅ Image Saved: {boat_capture.id} - Suspicious Boat Detected - Status: PENDING")
+            print(f"✅ Image Saved: {boat_capture.id} - Suspicious Activity Detected - Status: PENDING")
 
             return JsonResponse({
                 "status": "received",
