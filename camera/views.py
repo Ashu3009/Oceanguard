@@ -388,6 +388,8 @@ def update_status(request, capture_id):
                 print(f"✅ Updated capture #{capture_id} status to: {new_status}")
         except BoatCapture.DoesNotExist:
             print(f"❌ Capture #{capture_id} not found")
+        except Exception as e:
+            print(f"❌ Status update error: {str(e)}")
 
     return redirect('/gallery/')
 
