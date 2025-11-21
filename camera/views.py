@@ -487,22 +487,11 @@ def delete_capture(request, capture_id):
             # Delete from database
             capture.delete()
 
-            print(f"🗑️ Deleted: Capture #{capture_id}")
-
-            return JsonResponse({
-                "success": True,
-                "message": "Capture deleted successfully"
-            })
+            print(f"✅ Deleted: Capture #{capture_id}")
 
         except BoatCapture.DoesNotExist:
-            return JsonResponse({
-                "success": False,
-                "error": "Capture not found"
-            })
+            print(f"❌ Capture #{capture_id} not found")
         except Exception as e:
-            return JsonResponse({
-                "success": False,
-                "error": str(e)
-            })
+            print(f"❌ Delete error: {str(e)}")
 
-    return JsonResponse({"error": "POST only"})
+    return redirect('/gallery/')
