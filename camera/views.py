@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
 from django.utils import timezone
@@ -355,8 +355,8 @@ def upload_image(request):
 
 
 def gallery(request):
-    # Get all boat captures from database
-    captures = BoatCapture.objects.all()
+    # Get all boat captures from database, newest first
+    captures = BoatCapture.objects.all().order_by('-captured_at')
 
     # Calculate stats
     total = captures.count()
@@ -373,6 +373,23 @@ def gallery(request):
         "page_title": "All Captures",
         "current_page": "all"
     })
+
+
+def update_status(request, capture_id):
+    """Update the status of a boat capture (approve/warning)"""
+    if request.method == 'POST':
+        try:
+            capture = BoatCapture.objects.get(id=capture_id)
+            new_status = request.POST.get('status')
+
+            if new_status in ['approved', 'warning', 'pending']:
+                capture.status = new_status
+                capture.save()
+                print(f"✅ Updated capture #{capture_id} status to: {new_status}")
+        except BoatCapture.DoesNotExist:
+            print(f"❌ Capture #{capture_id} not found")
+
+    return redirect('/gallery/')
 
 
 def approved_gallery(request):

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OceanGuard - Suspicious Boat Gallery</title>
+    <title>OceanGuard - Maritime Surveillance</title>
     <style>
         * {
             margin: 0;
@@ -13,13 +13,13 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -27,20 +27,33 @@
             background: white;
             padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             text-align: center;
             margin-bottom: 30px;
         }
 
         h1 {
-            color: #333;
+            color: #1e3c72;
             font-size: 2.5em;
             margin-bottom: 10px;
+            font-weight: 700;
         }
 
         .subtitle {
             color: #666;
-            font-size: 1.2em;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .system-status {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            font-weight: bold;
         }
 
         .stats {
@@ -53,28 +66,34 @@
 
         .stat-card {
             background: white;
-            padding: 20px 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 25px 35px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
             text-align: center;
-            min-width: 150px;
+            min-width: 160px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
         }
 
         .stat-number {
-            font-size: 2em;
+            font-size: 2.2em;
             font-weight: bold;
-            color: #667eea;
+            color: #1e3c72;
         }
 
         .stat-label {
             color: #666;
-            margin-top: 5px;
+            margin-top: 8px;
+            font-size: 0.95em;
         }
 
         .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
             margin-bottom: 30px;
         }
 
@@ -82,95 +101,168 @@
             background: white;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .boat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
         }
 
         .boat-image {
             width: 100%;
             height: 250px;
             object-fit: cover;
+            border-bottom: 3px solid #f0f0f0;
         }
 
         .boat-info {
             padding: 20px;
         }
 
+        .boat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .boat-id {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
         .boat-status {
             display: inline-block;
-            padding: 5px 15px;
+            padding: 6px 16px;
             border-radius: 20px;
-            font-size: 0.9em;
+            font-size: 0.85em;
             font-weight: bold;
-            margin-bottom: 10px;
         }
 
         .status-pending {
-            background: #ffeaa7;
-            color: #d63031;
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffc107;
         }
 
         .status-approved {
-            background: #55efc4;
-            color: #00b894;
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
         }
 
         .status-warning {
-            background: #ff7675;
-            color: white;
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
         }
 
         .boat-notes {
-            color: #666;
-            margin: 10px 0;
+            color: #555;
+            margin: 12px 0;
             font-size: 0.95em;
+            line-height: 1.5;
         }
 
         .boat-time {
             color: #999;
             font-size: 0.85em;
+            margin-bottom: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .approve-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .approve-btn:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+
+        .warning-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .warning-btn:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+
+        .delete-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #5a6268;
+            transform: scale(1.05);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .refresh-btn {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: #667eea;
+            background: #1e3c72;
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 18px 35px;
             border-radius: 50px;
             font-size: 1.1em;
+            font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(30, 60, 114, 0.4);
             transition: all 0.3s ease;
         }
 
         .refresh-btn:hover {
-            background: #764ba2;
-            transform: scale(1.05);
+            background: #2a5298;
+            transform: scale(1.1);
         }
 
         .no-boats {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
 
         .no-boats h2 {
-            color: #666;
-            margin-bottom: 10px;
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.8em;
         }
 
         .no-boats p {
-            color: #999;
+            color: #666;
+            font-size: 1.1em;
         }
 
         @media (max-width: 768px) {
@@ -186,6 +278,10 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+
+            .action-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -193,13 +289,14 @@
     <div class="container">
         <header>
             <h1>🌊 OceanGuard</h1>
-            <p class="subtitle">Maritime Security Monitoring System</p>
+            <p class="subtitle">AI-Powered Maritime Surveillance System</p>
+            <span class="system-status">🟢 System Active</span>
         </header>
 
         <div class="stats">
             <div class="stat-card">
                 <div class="stat-number">{{ total }}</div>
-                <div class="stat-label">Total Captures</div>
+                <div class="stat-label">Total Detections</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">{{ pending }}</div>
@@ -207,11 +304,11 @@
             </div>
             <div class="stat-card">
                 <div class="stat-number">{{ approved }}</div>
-                <div class="stat-label">Approved</div>
+                <div class="stat-label">Cleared Boats</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">{{ warnings }}</div>
-                <div class="stat-label">Warnings</div>
+                <div class="stat-label">Security Alerts</div>
             </div>
         </div>
 
@@ -219,18 +316,43 @@
         <div class="gallery">
             {% for capture in captures %}
             <div class="boat-card">
-                <img src="{{ capture.image.url }}" alt="Boat Capture" class="boat-image">
+                <img src="{{ capture.image.url }}" alt="Suspicious Boat" class="boat-image">
                 <div class="boat-info">
-                    <span class="boat-status status-{{ capture.status }}">
-                        {% if capture.status == 'pending' %}⚠️ PENDING{% endif %}
-                        {% if capture.status == 'approved' %}✅ APPROVED{% endif %}
-                        {% if capture.status == 'warning' %}🚨 WARNING{% endif %}
-                    </span>
+                    <div class="boat-header">
+                        <span class="boat-id">🚢 Detection #{{ capture.id }}</span>
+                        <span class="boat-status status-{{ capture.status }}">
+                            {% if capture.status == 'pending' %}⚠️ REVIEW{% endif %}
+                            {% if capture.status == 'approved' %}✅ CLEARED{% endif %}
+                            {% if capture.status == 'warning' %}🚨 ALERT{% endif %}
+                        </span>
+                    </div>
                     <div class="boat-notes">
                         {{ capture.notes }}
                     </div>
                     <div class="boat-time">
                         📅 {{ capture.captured_at|date:"d M Y, h:i A" }}
+                    </div>
+                    <div class="action-buttons">
+                        <form method="POST" action="/update-status/{{ capture.id }}/" style="flex: 1; display: flex;">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="approved">
+                            <button type="submit" class="action-btn approve-btn" {% if capture.status == 'approved' %}disabled{% endif %}>
+                                ✓ Clear
+                            </button>
+                        </form>
+                        <form method="POST" action="/update-status/{{ capture.id }}/" style="flex: 1; display: flex;">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="warning">
+                            <button type="submit" class="action-btn warning-btn" {% if capture.status == 'warning' %}disabled{% endif %}>
+                                ⚠ Alert
+                            </button>
+                        </form>
+                        <form method="POST" action="/delete-capture/{{ capture.id }}/" onsubmit="return confirm('Delete this detection?')" style="flex: 1; display: flex;">
+                            {% csrf_token %}
+                            <button type="submit" class="action-btn delete-btn">
+                                🗑️ Delete
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -238,8 +360,8 @@
         </div>
         {% else %}
         <div class="no-boats">
-            <h2>No Suspicious Activity Detected</h2>
-            <p>System is actively monitoring. Suspicious boats will appear here when detected.</p>
+            <h2>🔍 No Detections Yet</h2>
+            <p>System is actively monitoring the maritime area. Suspicious activities will be displayed here.</p>
         </div>
         {% endif %}
 
