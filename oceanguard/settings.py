@@ -110,13 +110,31 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ============================================
 
 # QR Code Scanning
-QR_SCAN_ENABLED = True
+QR_SCAN_ENABLED = False  # DISABLED - Using ML + Color detection
 
-# ML Boat Detection Settings
-ML_BOAT_DETECTION_ENABLED = True  # Enable/Disable ML boat detection
-ML_CONFIDENCE_THRESHOLD = 0.5  # 50% confidence for boat detection
-# Classes to detect as "boats" (COCO dataset labels)
-BOAT_CLASSES = ['boat', 'ship', 'sailboat', 'speedboat', 'vessel']
+# ML Boat Detection Settings (DISABLED - Only color detection!)
+ML_BOAT_DETECTION_ENABLED = False  # DISABLED - Only using RED color detection
+ML_CONFIDENCE_THRESHOLD = 0.25  # 25% confidence (lowered for better detection)
+# Classes to detect as "boats" (COCO dataset - only 'boat' exists in COCO)
+# Note: COCO doesn't have 'ship', 'sailboat', etc. - only generic 'boat' class
+BOAT_CLASSES = ['boat']  # Only 'boat' exists in COCO dataset
+
+# 🎨 Color Detection Settings (RED Boat Detection!)
+COLOR_DETECTION_ENABLED = True  # Color filter for RED boats
+
+# HSV color ranges for RED boats
+# HSV format: (Hue, Saturation, Value) - each 0-255 in OpenCV
+COLOR_RANGES = {
+    'RED': [
+        # Red wraps around in HSV, so we need two ranges
+        {'lower': (0, 100, 100), 'upper': (10, 255, 255)},      # Lower red (0-10)
+        {'lower': (160, 100, 100), 'upper': (180, 255, 255)}    # Upper red (160-180)
+    ]
+}
+
+# Minimum and Maximum percentage of colored pixels to consider boat detected
+COLOR_DETECTION_MIN_THRESHOLD = 5.0   # At least 5% must be colored (filters out small objects like pens)
+COLOR_DETECTION_MAX_THRESHOLD = 60.0  # Maximum 60% can be colored (filters out walls, large backgrounds)
 
 # Camera GPS Location (Update with actual coordinates)
 CAMERA_GPS_LOCATION = {

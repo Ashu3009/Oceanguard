@@ -8,16 +8,14 @@ from .models import BoatCapture, RegisteredBoat
 import os
 import glob
 import time
-# QR Code Scanner Libraries (Optional - graceful fallback if not available)
+# QR Code Scanner Libraries - OpenCV (Windows-friendly, no DLL issues)
 try:
-    from PIL import Image
-    from pyzbar.pyzbar import decode  # noqa: F401
+    import cv2
+    import numpy as np
     QR_AVAILABLE = True
-except (ImportError, FileNotFoundError, OSError, Exception):
-    # Pyzbar not available or missing DLL files on Windows
+except ImportError:
+    # OpenCV not available
     QR_AVAILABLE = False
-    Image = None
-    decode = None
 # ML Boat Detection Libraries (Optional - graceful fallback if not available)
 try:
     from ultralytics import YOLO
@@ -30,6 +28,78 @@ from math import radians, cos, sin, asin, sqrt
 import datetime
 import json
 import io
+
+
+# 🎨 Color Detection Function for RED and BLUE boats
+def detect_colored_boat(img_data):
+    """
+    Detect RED or BLUE colored boats in image using HSV color space
+    Returns: (detected, color, percentage)
+    - detected: True if RED or BLUE boat found
+    - color: 'RED' or 'BLUE' or None
+    - percentage: percentage of image that is the detected color
+    """
+    if not QR_AVAILABLE:  # cv2 and numpy needed
+        return False, None, 0.0
+
+    try:
+        # Convert bytes to numpy array
+        nparr = np.frombuffer(img_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        if img is None:
+            return False, None, 0.0
+
+        # Convert BGR to HSV (better for color detection)
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+        # Total pixels in image
+        total_pixels = img.shape[0] * img.shape[1]
+
+        # Get color ranges from settings
+        color_ranges = settings.COLOR_RANGES
+        min_threshold = settings.COLOR_DETECTION_MIN_THRESHOLD
+        max_threshold = settings.COLOR_DETECTION_MAX_THRESHOLD
+
+        detected_colors = []
+
+        # Check each color
+        for color_name, ranges in color_ranges.items():
+            total_color_pixels = 0
+
+            # Check all ranges for this color (RED has 2 ranges)
+            for color_range in ranges:
+                lower = np.array(color_range['lower'])
+                upper = np.array(color_range['upper'])
+
+                # Create mask for this color range
+                mask = cv2.inRange(hsv, lower, upper)
+
+                # Count colored pixels
+                color_pixels = cv2.countNonZero(mask)
+                total_color_pixels += color_pixels
+
+            # Calculate percentage
+            percentage = (total_color_pixels / total_pixels) * 100
+
+            # Check if within valid range (not too small, not too big)
+            if min_threshold <= percentage <= max_threshold:
+                detected_colors.append({
+                    'color': color_name,
+                    'percentage': round(percentage, 2)
+                })
+
+        # Return highest percentage color
+        if detected_colors:
+            detected_colors.sort(key=lambda x: x['percentage'], reverse=True)
+            best = detected_colors[0]
+            return True, best['color'], best['percentage']
+
+        return False, None, 0.0
+
+    except Exception as e:
+        print(f"❌ Color detection error: {str(e)}")
+        return False, None, 0.0
 
 
 # GPS Distance Calculator (Haversine Formula)
@@ -224,134 +294,61 @@ def upload_image(request):
         save_to_live_monitoring(img_data, filename)  # Save new image
 
         # ============================================
-        # STEP 1: QR CODE SCANNING (Priority!)
+        # STEP 1: RED COLOR DETECTION (Fast Filter)
         # ============================================
-        qr_found = False
-        qr_is_valid = False
-        qr_data = None
-        boat = None
+        color_detected = False
+        detected_color = None
+        color_percentage = 0.0
 
         try:
-            if QR_AVAILABLE and Image is not None and decode is not None:
-                # Open image for QR scanning
-                from PIL import Image as PILImage
-                image = PILImage.open(io.BytesIO(img_data))
-                decoded_objects = decode(image)
+            if settings.COLOR_DETECTION_ENABLED:
+                print("🎨 Step 1: Checking for RED color...")
+                color_detected, detected_color, color_percentage = detect_colored_boat(img_data)
 
-                if decoded_objects:
-                    # QR Code found!
-                    qr_found = True
-                    qr_data = decoded_objects[0].data.decode('utf-8')
-                    print(f"📱 QR Code Found: {qr_data}")
-
-                    # Check if boat is registered
-                    boat = RegisteredBoat.objects.filter(qr_code=qr_data).first()
-
-                    if boat:
-                        qr_is_valid = True
-                        print(f"✅ Valid QR: {boat.boat_name} ({boat.boat_id})")
-                    else:
-                        print(f"⚠️ Unregistered QR: {qr_data}")
+                if color_detected:
+                    print(f"✅ RED Color Found! ({color_percentage}% of image)")
+                else:
+                    print(f"❌ No RED color detected - Rejecting image")
             else:
-                if not QR_AVAILABLE:
-                    print("⚠️ QR scanning not available - pyzbar library missing")
+                print("⚠️ Color detection disabled in settings")
         except Exception as e:
-            print(f"❌ QR Scan Error: {str(e)}")
+            print(f"❌ Color Detection Error: {str(e)}")
 
         # ============================================
-        # DECISION LOGIC: QR First, ML Second
+        # DECISION LOGIC: RED Color Only (SIMPLE!)
         # ============================================
 
-        # If QR found and VALID → Save immediately, skip ML
-        if qr_found and qr_is_valid:
-            print("✅ QR Valid → Saving to database (ML check skipped)")
+        # RED color detected → Save to database
+        if color_detected:
+            print(f"✅ RED COLOR DETECTED → Saving to database")
 
             # Save to database
             boat_capture = BoatCapture()
             boat_capture.image.save(filename, ContentFile(img_data), save=True)
-            boat_capture.qr_detected = True
-            boat_capture.qr_data = qr_data
-            boat_capture.qr_valid = True
-            boat_capture.status = 'pending'  # Coast Guard manual review
-            boat_capture.notes = f"✅ QR Detected: {boat.boat_name} ({boat.boat_id})"
-            boat_capture.save()
-
-            # Update boat stats
-            boat.total_entries += 1
-            boat.qr_last_used = timezone.now()
-            boat.save()
-
-            print(f"✅ Image Saved: {boat_capture.id} - Status: PENDING")
-
-            return JsonResponse({
-                "status": "received",
-                "id": boat_capture.id,
-                "filename": filename,
-                "qr_detected": True,
-                "qr_valid": True,
-                "boat_name": boat.boat_name
-            })
-
-        # If QR found but INVALID → Warning
-        elif qr_found and not qr_is_valid:
-            print("⚠️ QR Invalid → Marking as WARNING")
-
-            boat_capture = BoatCapture()
-            boat_capture.image.save(filename, ContentFile(img_data), save=True)
-            boat_capture.qr_detected = True
-            boat_capture.qr_data = qr_data
-            boat_capture.qr_valid = False
-            boat_capture.status = 'warning'
-            boat_capture.notes = "⚠️ ALERT: Unregistered QR Code detected"
-            boat_capture.save()
-
-            print(f"⚠️ Image Saved: {boat_capture.id} - Status: WARNING")
-
-            return JsonResponse({
-                "status": "received",
-                "id": boat_capture.id,
-                "filename": filename,
-                "qr_detected": True,
-                "qr_valid": False
-            })
-
-        # No QR found → Use ML boat detection
-        else:
-            print("❌ No QR Found → Running ML boat detection")
-
-            is_boat, confidence, detected_class = detect_boat(img_data)
-
-            if not is_boat:
-                # NOT a boat - Delete, don't save
-                print(f"🗑️ ML says NO BOAT → Image rejected")
-                return JsonResponse({
-                    "status": "rejected",
-                    "reason": "no_boat_detected",
-                    "message": "No QR + No boat detected"
-                })
-
-            # Boat detected but no QR → Warning
-            print(f"🚢 Boat detected ({detected_class}) but NO QR → WARNING")
-
-            boat_capture = BoatCapture()
-            boat_capture.image.save(filename, ContentFile(img_data), save=True)
             boat_capture.qr_detected = False
-            boat_capture.status = 'warning'
-            boat_capture.notes = "⚠️ ALERT: Boat detected but no QR Code - Unregistered vessel"
+            boat_capture.qr_data = None
+            boat_capture.qr_valid = False
+            boat_capture.status = 'pending'
+            boat_capture.notes = f"🔴 RED Object Detected ({color_percentage}% of image)"
             boat_capture.save()
 
-            print(f"⚠️ Image Saved: {boat_capture.id} - Status: WARNING")
+            print(f"✅ Image Saved: {boat_capture.id} - RED Detected - Status: PENDING")
 
             return JsonResponse({
                 "status": "received",
                 "id": boat_capture.id,
                 "filename": filename,
-                "qr_detected": False,
-                "ml_detection": {
-                    "boat_detected": is_boat,
-                    "confidence": confidence,
-                    "class": detected_class
-                }
+                "red_detected": True,
+                "color_percentage": color_percentage
+            })
+
+        # No RED color → Reject
+        else:
+            print("❌ No RED color detected → Image rejected")
+            return JsonResponse({
+                "status": "rejected",
+                "reason": "no_red_color",
+                "message": "No RED color detected in image"
             })
 
     return JsonResponse({"error": "POST only"})

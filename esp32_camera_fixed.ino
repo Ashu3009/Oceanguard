@@ -7,7 +7,7 @@ const char* ssid = "The Student Scoop";
 const char* password = "TSS@2023";
 
 // ⬇️ Your server endpoint
-String serverURL = "http://192.168.0.64:8000/upload-image/";
+String serverURL = "http://192.168.0.176:8000/upload-image/";
 
 // Camera Module: AI Thinker
 #define PWDN_GPIO_NUM     32
@@ -149,7 +149,8 @@ void loop() {
 
   http.begin(serverURL);
   http.addHeader("Content-Type", "image/jpeg");
-  http.setTimeout(10000); // 10 second timeout
+  http.setTimeout(20000); // 20 second timeout (QR scanning takes time)
+  http.setConnectTimeout(5000); // 5 second connection timeout
 
   int httpResponseCode = http.POST(fb->buf, fb->len);
 
