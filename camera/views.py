@@ -329,7 +329,7 @@ def upload_image(request):
             boat_capture.qr_data = None
             boat_capture.qr_valid = False
             boat_capture.status = 'pending'
-            boat_capture.notes = f"Unidentified vessel detected - Security review required (Confidence: {color_percentage}%)"
+            boat_capture.notes = "Unidentified vessel detected - Security review required"
             boat_capture.save()
 
             print(f"✅ Image Saved: {boat_capture.id} - Suspicious Activity Detected - Status: PENDING")
