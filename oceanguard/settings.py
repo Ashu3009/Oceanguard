@@ -17,12 +17,12 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z&4_uof9j#x0efoe_w$+kvf-ex@m_&qmy@x85g7ni+q5&sgijp'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-z&4_uof9j#x0efoe_w$+kvf-ex@m_&qmy@x85g7ni+q5&sgijp')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']  # Allow all devices on local WiFi
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 
 # Application definition
@@ -95,6 +95,7 @@ USE_TZ = True
 
 # Static Files
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # ✅ Media: Where camera images are stored
 MEDIA_URL = '/media/'
