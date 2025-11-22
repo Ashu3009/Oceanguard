@@ -23,9 +23,7 @@ from camera.views import (
     approved_gallery,
     warning_gallery,
     update_status,
-    delete_capture,
-    request_capture,
-    check_capture_request
+    delete_capture
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -47,10 +45,6 @@ urlpatterns = [
     # Actions
     path('update-status/<int:capture_id>/', update_status, name='update_status'),
     path('delete-capture/<int:capture_id>/', delete_capture, name='delete_capture'),
-
-    # Manual Capture
-    path('request-capture/', request_capture, name='request_capture'),
-    path('check-capture/', check_capture_request, name='check_capture_request'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

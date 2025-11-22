@@ -1,0 +1,184 @@
+===========================================================
+  OCEANGUARD - COMPETITION DEMO SETUP GUIDE
+===========================================================
+
+SYSTEM REQUIREMENTS:
+--------------------
+1. Laptop/Computer with Python 3.8+ installed
+2. Any smartphone (Android/iPhone) with browser
+3. ESP32-CAM module with Arduino code uploaded
+4. WiFi router (all devices on same network)
+
+
+STEP 1: PROJECT SETUP (5 minutes)
+----------------------------------
+
+1. Extract project folder to Desktop
+
+2. Open Command Prompt/Terminal in project folder
+
+3. Create Virtual Environment:
+   python -m venv venv
+
+4. Activate Virtual Environment:
+   - Windows: venv\Scripts\activate
+   - Mac/Linux: source venv/bin/activate
+
+5. Install Dependencies:
+   pip install django pillow opencv-python numpy pyzbar ultralytics
+
+6. Create media folders:
+   mkdir media
+   mkdir media\live_monitoring
+   mkdir media\boat_images
+
+
+STEP 2: DATABASE SETUP (1 minute)
+----------------------------------
+
+1. Run migrations:
+   python manage.py migrate
+
+2. Create admin user (optional):
+   python manage.py createsuperuser
+
+
+STEP 3: FIND YOUR LAPTOP IP ADDRESS
+------------------------------------
+
+Windows:
+   ipconfig
+   (Look for "IPv4 Address" under WiFi adapter - e.g., 192.168.0.176)
+
+Mac/Linux:
+   ifconfig
+   (Look for inet address under WiFi - e.g., 192.168.0.176)
+
+
+STEP 4: START DJANGO SERVER
+----------------------------
+
+1. Run server:
+   python manage.py runserver 0.0.0.0:8000
+
+2. Server will start at: http://0.0.0.0:8000
+
+3. Keep this terminal window open during demo!
+
+
+STEP 5: CONFIGURE ESP32-CAM
+----------------------------
+
+1. Open Arduino IDE
+
+2. Open file: esp32_camera_fixed.ino
+
+3. Update these lines:
+   - Line 7: const char* ssid = "YOUR_WIFI_NAME";
+   - Line 8: const char* password = "YOUR_WIFI_PASSWORD";
+   - Line 10: String serverURL = "http://YOUR_LAPTOP_IP:8000/upload-image/";
+
+   Example:
+   String serverURL = "http://192.168.0.176:8000/upload-image/";
+
+4. Upload code to ESP32-CAM
+
+5. Open Serial Monitor (115200 baud) to verify connection
+
+
+STEP 6: VIEW ON PHONE
+----------------------
+
+1. Connect phone to SAME WiFi as laptop
+
+2. Open browser on phone (Chrome/Safari)
+
+3. Go to: http://YOUR_LAPTOP_IP:8000/gallery/
+
+   Example: http://192.168.0.176:8000/gallery/
+
+4. Refresh page to see new detected boats!
+
+
+DEMO INSTRUCTIONS:
+------------------
+
+1. Show RED colored object to ESP32 camera
+2. Wait 8 seconds for capture
+3. Refresh gallery on phone
+4. RED object will appear in gallery!
+
+DETECTION LOGIC:
+- If 5-60% of image is RED color -> Saved to gallery
+- Otherwise -> Rejected
+
+
+TROUBLESHOOTING:
+----------------
+
+Problem: ESP32 not connecting to WiFi
+Solution: Check WiFi name and password in Arduino code
+
+Problem: Images not appearing in gallery
+Solution:
+- Check laptop IP address is correct in ESP32 code
+- Verify phone and laptop are on same WiFi
+- Check Django server is running (terminal should show activity)
+
+Problem: All images getting rejected
+Solution: Use brighter RED colored object (like red paper/book)
+
+Problem: Django server not starting
+Solution: Make sure port 8000 is not in use, or change to 8080
+
+
+COMPETITION TIPS:
+-----------------
+
+1. Test complete setup 1 day before competition
+2. Keep backup RED colored object (in case first one doesn't work)
+3. Practice demo 2-3 times
+4. Keep laptop charger with you
+5. Have backup WiFi (mobile hotspot) ready
+6. Take screenshots of working system as proof
+
+
+PROJECT STRUCTURE:
+------------------
+oceanguard/
+  camera/              - Main app (views, models, templates)
+  oceanguard/          - Django settings
+  media/               - Captured images
+  esp32_camera_fixed.ino - ESP32 Arduino code
+  manage.py            - Django management script
+
+
+JUDGE QUESTIONS - BE READY:
+----------------------------
+
+Q: How does color detection work?
+A: We use OpenCV HSV color space to detect RED pixels. If 5-60% of
+   image is RED, we save it. Otherwise reject it.
+
+Q: Why Django?
+A: Django is a Python web framework that handles image uploads,
+   database storage, and provides web interface for viewing.
+
+Q: Why ESP32-CAM?
+A: Low cost ($5), built-in WiFi, easy to program with Arduino IDE.
+
+Q: Can it detect other colors?
+A: Yes! Just change COLOR_RANGES in oceanguard/settings.py to any
+   HSV color range.
+
+Q: Real world applications?
+A: Maritime security, harbor monitoring, illegal fishing detection,
+   boat traffic monitoring, search and rescue operations.
+
+
+CONTACT INFO (for judges):
+---------------------------
+Project: OceanGuard Maritime Security System
+Technology: Django + OpenCV + ESP32-CAM
+Detection: HSV Color-based filtering
+===========================================================

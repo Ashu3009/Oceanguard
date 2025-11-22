@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#2196F3"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🌊 OceanGuard"
+            android:textSize="24sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Maritime Security System"
+            android:textSize="12sp"
+            android:textColor="#E3F2FD"
+            android:layout_gravity="center"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Server URL Input -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="#F5F5F5">
+
+        <EditText
+            android:id="@+id/serverUrlInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Server URL"
+            android:text="http://192.168.43.1:8000/gallery/"
+            android:inputType="textUri"
+            android:textSize="12sp"
+            android:padding="12dp"
+            android:background="#FFFFFF"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/connectButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Connect"
+            android:textSize="12sp"
+            android:backgroundTint="#4CAF50" />
+    </LinearLayout>
+
+    <!-- Refresh Button -->
+    <Button
+        android:id="@+id/refreshButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🔄 Refresh Gallery"
+        android:textSize="14sp"
+        android:layout_margin="12dp"
+        android:backgroundTint="#FF9800" />
+
+    <!-- WebView for Gallery -->
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#FFFFFF" />
+
+    <!-- Footer -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🔴 RED Boat Detection Active"
+        android:textSize="12sp"
+        android:textColor="#FFFFFF"
+        android:background="#F44336"
+        android:gravity="center"
+        android:padding="8dp" />
+
+</LinearLayout>

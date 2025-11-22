@@ -1,0 +1,66 @@
+===============================================================
+   BUILD APK USING ANDROID STUDIO
+===============================================================
+
+REQUIREMENTS:
+-------------
+- Android Studio installed (download from developer.android.com)
+- 10GB free disk space
+- Java JDK 11 or higher
+
+STEP-BY-STEP:
+-------------
+
+1. Open Android Studio
+
+2. Click "Open Project"
+
+3. Navigate to and select: OceanGuardApp folder
+
+4. Wait for Gradle sync (5-10 minutes first time)
+   - Will download dependencies automatically
+   - Internet connection needed
+
+5. Once sync complete, click "Build" menu
+
+6. Select "Build Bundle(s) / APK(s)" → "Build APK(s)"
+
+7. Wait for build (2-3 minutes)
+
+8. APK location:
+   OceanGuardApp/app/build/outputs/apk/debug/app-debug.apk
+
+9. Copy APK to phone and install!
+
+===============================================================
+TROUBLESHOOTING:
+===============================================================
+
+Error: SDK not found
+Solution: Tools → SDK Manager → Install latest SDK
+
+Error: Gradle sync failed
+Solution: File → Invalidate Caches → Restart
+
+Error: Build failed
+Solution: Build → Clean Project, then Build again
+
+===============================================================
+CUSTOMIZE APP (Optional):
+===============================================================
+
+Change default URL:
+- Edit: app/src/main/res/layout/activity_main.xml
+- Line 46: Change android:text="http://192.168.43.1:8000/gallery/"
+  to your URL
+
+Change app name:
+- Edit: app/src/main/res/values/strings.xml
+- Change "OceanGuard" to your preferred name
+
+Change app colors:
+- Edit: app/src/main/res/layout/activity_main.xml
+- Line 11: android:background="#2196F3" (blue header)
+- Change color code as needed
+
+===============================================================

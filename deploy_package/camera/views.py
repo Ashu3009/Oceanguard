@@ -1,10 +1,10 @@
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.conf import settings
-from .models import BoatCapture, RegisteredBoat, CaptureRequest
+from .models import BoatCapture, RegisteredBoat
 import os
 import glob
 import time
@@ -294,7 +294,7 @@ def upload_image(request):
         save_to_live_monitoring(img_data, filename)  # Save new image
 
         # ============================================
-        # STEP 1: SUSPICIOUS COLOR DETECTION
+        # STEP 1: RED COLOR DETECTION (Fast Filter)
         # ============================================
         color_detected = False
         detected_color = None
@@ -302,25 +302,25 @@ def upload_image(request):
 
         try:
             if settings.COLOR_DETECTION_ENABLED:
-                print("🎨 Step 1: Checking for suspicious activity...")
+                print("🎨 Step 1: Checking for RED color...")
                 color_detected, detected_color, color_percentage = detect_colored_boat(img_data)
 
                 if color_detected:
-                    print(f"✅ Suspicious Color Found! ({color_percentage}% of image)")
+                    print(f"✅ RED Color Found! ({color_percentage}% of image)")
                 else:
-                    print(f"❌ No suspicious activity detected - Rejecting image")
+                    print(f"❌ No RED color detected - Rejecting image")
             else:
                 print("⚠️ Color detection disabled in settings")
         except Exception as e:
             print(f"❌ Color Detection Error: {str(e)}")
 
         # ============================================
-        # DECISION LOGIC: Suspicious Activity Detection
+        # DECISION LOGIC: RED Color Only (SIMPLE!)
         # ============================================
 
-        # Suspicious color detected → Save to database
+        # RED color detected → Save to database
         if color_detected:
-            print(f"✅ SUSPICIOUS ACTIVITY DETECTED → Saving to database")
+            print(f"✅ RED COLOR DETECTED → Saving to database")
 
             # Save to database
             boat_capture = BoatCapture()
@@ -329,34 +329,34 @@ def upload_image(request):
             boat_capture.qr_data = None
             boat_capture.qr_valid = False
             boat_capture.status = 'pending'
-            boat_capture.notes = "Unidentified vessel detected - Security review required"
+            boat_capture.notes = f"🔴 RED Object Detected ({color_percentage}% of image)"
             boat_capture.save()
 
-            print(f"✅ Image Saved: {boat_capture.id} - Suspicious Activity Detected - Status: PENDING")
+            print(f"✅ Image Saved: {boat_capture.id} - RED Detected - Status: PENDING")
 
             return JsonResponse({
                 "status": "received",
                 "id": boat_capture.id,
                 "filename": filename,
-                "suspicious_detected": True,
+                "red_detected": True,
                 "color_percentage": color_percentage
             })
 
-        # No suspicious color → Reject
+        # No RED color → Reject
         else:
-            print("❌ No suspicious activity detected → Image rejected")
+            print("❌ No RED color detected → Image rejected")
             return JsonResponse({
                 "status": "rejected",
-                "reason": "no_suspicious_activity",
-                "message": "No suspicious activity detected"
+                "reason": "no_red_color",
+                "message": "No RED color detected in image"
             })
 
     return JsonResponse({"error": "POST only"})
 
 
 def gallery(request):
-    # Get all boat captures from database, newest first
-    captures = BoatCapture.objects.all().order_by('-captured_at')
+    # Get all boat captures from database
+    captures = BoatCapture.objects.all()
 
     # Calculate stats
     total = captures.count()
@@ -373,25 +373,6 @@ def gallery(request):
         "page_title": "All Captures",
         "current_page": "all"
     })
-
-
-def update_status(request, capture_id):
-    """Update the status of a boat capture (approve/warning)"""
-    if request.method == 'POST':
-        try:
-            capture = BoatCapture.objects.get(id=capture_id)
-            new_status = request.POST.get('status')
-
-            if new_status in ['approved', 'warning', 'pending']:
-                capture.status = new_status
-                capture.save()
-                print(f"✅ Updated capture #{capture_id} status to: {new_status}")
-        except BoatCapture.DoesNotExist:
-            print(f"❌ Capture #{capture_id} not found")
-        except Exception as e:
-            print(f"❌ Status update error: {str(e)}")
-
-    return redirect('/gallery/')
 
 
 def approved_gallery(request):
@@ -489,49 +470,22 @@ def delete_capture(request, capture_id):
             # Delete from database
             capture.delete()
 
-            print(f"✅ Deleted: Capture #{capture_id}")
+            print(f"🗑️ Deleted: Capture #{capture_id}")
+
+            return JsonResponse({
+                "success": True,
+                "message": "Capture deleted successfully"
+            })
 
         except BoatCapture.DoesNotExist:
-            print(f"❌ Capture #{capture_id} not found")
+            return JsonResponse({
+                "success": False,
+                "error": "Capture not found"
+            })
         except Exception as e:
-            print(f"❌ Delete error: {str(e)}")
-
-    return redirect('/gallery/')
-
-
-# Manual Capture Request from App Button
-def request_capture(request):
-    """User clicks 'Capture Now' button in app"""
-    if request.method == 'POST':
-        # Create capture request
-        capture_req = CaptureRequest.objects.create()
-        print(f"📸 Manual capture requested! ID: {capture_req.id}")
-
-        return JsonResponse({
-            "success": True,
-            "message": "Capture request sent to ESP32",
-            "request_id": capture_req.id
-        })
+            return JsonResponse({
+                "success": False,
+                "error": str(e)
+            })
 
     return JsonResponse({"error": "POST only"})
-
-
-@csrf_exempt
-def check_capture_request(request):
-    """ESP32 polls this endpoint to check if it should capture"""
-    # Check for unprocessed capture requests
-    pending_request = CaptureRequest.objects.filter(processed=False).first()
-
-    if pending_request:
-        # Mark as processed
-        pending_request.processed = True
-        pending_request.save()
-
-        print(f"✅ ESP32 processing capture request #{pending_request.id}")
-
-        return JsonResponse({
-            "capture": True,
-            "request_id": pending_request.id
-        })
-
-    return JsonResponse({"capture": False})

@@ -1,18 +1,5 @@
 from django.db import models
 
-
-# Capture Request - Manual trigger from app
-class CaptureRequest(models.Model):
-    requested_at = models.DateTimeField(auto_now_add=True)
-    processed = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ['-requested_at']
-
-    def __str__(self):
-        return f"Capture Request {self.id} - {'Processed' if self.processed else 'Pending'}"
-
-
 # BoatCapture Model - Har boat ki photo aur uska status
 class BoatCapture(models.Model):
     # Status choices for Coast Guard action

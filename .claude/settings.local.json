@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python test_qr_opencv.py:*)",
+      "Bash(python manage.py runserver:*)",
+      "Bash(venv/Scripts/python.exe manage.py:*)",
+      "Bash(timeout 3 venv/Scripts/python.exe manage.py runserver:*)",
+      "Bash(venv/Scripts/python.exe:*)",
+      "Bash(timeout /t 3 /nobreak)",
+      "Bash(WHITE_BLUE_SETUP.md)",
+      "Bash(ping:*)",
+      "Bash(nul)",
+      "Bash(dir:*)",
+      "Bash(zip:*)",
+      "Bash(tar:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(python manage.py makemigrations:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
